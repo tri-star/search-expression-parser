@@ -24,51 +24,25 @@ class ParseContext {
     return this.tokens
   }
 
-  expectTerm() {
-    const matched = this.source.slice(this.position).match(/^[A-Za-z]+/)
-    const termString = matched?.[0]
-    if (termString === undefined) {
-      throw new ParseError('キーワードが見つかりません', this.position)
-    }
-    if (!termList.includes(termString as Term)) {
-      throw new ParseError('キーワードが見つかりません', this.position)
-    }
-    this.pushToken({ type: 'TERM', value: termString as Term })
-    this.consume(termString.length)
+  currentSource() {
+    return this.source.slice(this.position)
   }
 
-  expectValue() {
-    const operators = operatorTokenChars.map((s) => escapeRegExp(s)).join('')
-    const valueRegExp = new RegExp(`[^${operators}\s]+`)
-
-    const matched = this.source.slice(this.position).match(valueRegExp)
-    const valueString = (matched?.[0] ?? '').trim()
-    if (valueString === '') {
-      throw new ParseError('値が見つかりません', this.position)
-    }
-    this.pushToken({ type: 'STRING', value: valueString as Term })
-    this.consume(valueString.length)
-  }
-  tryString(s: string) {
-    const slicedString =
-      this.source.slice(this.position, this.position + s.length) ?? ''
-    return slicedString === s
+  peekSource(length: number) {
+    return this.source.slice(this.position, this.position + length)
   }
 
-  expectString(s: string) {
-    if (!this.tryString(s)) {
-      throw new ParseError(`「${s}」が見つかりません。`, this.position)
-    }
-    this.consume(s.length)
-    return s
+  currentPosition() {
+    return this.position
   }
+}
 
-  consumeWhiteSpace() {
-    const matched = this.source.slice(this.position).match(/^\s+/)
-    if (matched === null) {
-      return
-    }
-    this.consume(matched[0].length)
+class ParseError extends Error {
+  constructor(
+    message: string,
+    public position: number,
+  ) {
+    super(`${message} (position: ${position})}`)
   }
 }
 
@@ -82,37 +56,83 @@ export class Lexer {
   }
 
   parseExpression(context: ParseContext) {
-    context.consumeWhiteSpace()
-    const term = context.expectTerm()
-    context.consumeWhiteSpace()
-    context.expectString('=')
+    this.consumeWhiteSpace(context)
+    const term = this.expectTerm(context)
+    this.consumeWhiteSpace(context)
+    this.expectString(context, '=')
     context.pushToken({ type: 'EQUAL' })
-    context.consumeWhiteSpace()
-    context.expectValue()
-    context.consumeWhiteSpace()
+    this.consumeWhiteSpace(context)
+    this.expectValue(context)
+    this.consumeWhiteSpace(context)
   }
 
   parseJoinExpression(context: ParseContext) {
     this.parseExpression(context)
-    context.consumeWhiteSpace()
-    if (context.tryString('+')) {
+    this.consumeWhiteSpace(context)
+    if (this.tryString(context, '+')) {
       context.pushToken({ type: 'OR' })
       context.consume(1)
       this.parseJoinExpression(context)
     }
-    if (context.tryString('*')) {
+    if (this.tryString(context, '*')) {
       context.pushToken({ type: 'AND' })
       context.consume(1)
       this.parseJoinExpression(context)
     }
   }
-}
 
-class ParseError extends Error {
-  constructor(
-    message: string,
-    public position: number,
-  ) {
-    super(`${message} (position: ${position})}`)
+  expectTerm(context: ParseContext) {
+    const matched = context.currentSource().match(/^[A-Za-z]+/)
+    const termString = matched?.[0]
+    if (termString === undefined) {
+      throw new ParseError(
+        'キーワードが見つかりません',
+        context.currentPosition(),
+      )
+    }
+    if (!termList.includes(termString as Term)) {
+      throw new ParseError(
+        'キーワードが見つかりません',
+        context.currentPosition(),
+      )
+    }
+    context.pushToken({ type: 'TERM', value: termString as Term })
+    context.consume(termString.length)
+  }
+
+  expectValue(context: ParseContext) {
+    const operators = operatorTokenChars.map((s) => escapeRegExp(s)).join('')
+    const valueRegExp = new RegExp(`[^${operators}\s]+`)
+
+    const matched = context.currentSource().match(valueRegExp)
+    const valueString = (matched?.[0] ?? '').trim()
+    if (valueString === '') {
+      throw new ParseError('値が見つかりません', context.currentPosition())
+    }
+    context.pushToken({ type: 'STRING', value: valueString as Term })
+    context.consume(valueString.length)
+  }
+  tryString(context: ParseContext, s: string) {
+    const slicedString = context.peekSource(s.length)
+    return slicedString === s
+  }
+
+  expectString(context: ParseContext, s: string) {
+    if (!this.tryString(context, s)) {
+      throw new ParseError(
+        `「${s}」が見つかりません。`,
+        context.currentPosition(),
+      )
+    }
+    context.consume(s.length)
+    return s
+  }
+
+  consumeWhiteSpace(context: ParseContext) {
+    const matched = context.currentSource().match(/^\s+/)
+    if (matched === null) {
+      return
+    }
+    context.consume(matched[0].length)
   }
 }
