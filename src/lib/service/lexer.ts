@@ -49,15 +49,14 @@ class ParseContext {
     this.pushToken({ type: 'STRING', value: valueString as Term })
     this.consume(valueString.length)
   }
-
-  peekString(s: string) {
+  tryString(s: string) {
     const slicedString =
       this.source.slice(this.position, this.position + s.length) ?? ''
     return slicedString === s
   }
 
   expectString(s: string) {
-    if (!this.peekString(s)) {
+    if (!this.tryString(s)) {
       throw new ParseError(`「${s}」が見つかりません。`, this.position)
     }
     this.consume(s.length)
@@ -77,7 +76,7 @@ export class Lexer {
   tokenize(source: string): Token[] {
     const context = new ParseContext(source)
 
-    this.parseOrExpression(context)
+    this.parseJoinExpression(context)
 
     return context.getTokens()
   }
@@ -93,13 +92,18 @@ export class Lexer {
     context.consumeWhiteSpace()
   }
 
-  parseOrExpression(context: ParseContext) {
+  parseJoinExpression(context: ParseContext) {
     this.parseExpression(context)
     context.consumeWhiteSpace()
-    if (context.peekString('+')) {
+    if (context.tryString('+')) {
       context.pushToken({ type: 'OR' })
       context.consume(1)
-      this.parseOrExpression(context)
+      this.parseJoinExpression(context)
+    }
+    if (context.tryString('*')) {
+      context.pushToken({ type: 'AND' })
+      context.consume(1)
+      this.parseJoinExpression(context)
     }
   }
 }
