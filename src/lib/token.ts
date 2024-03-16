@@ -6,7 +6,7 @@
 // term := 'title' | 'body' | 'issued'
 // value := '"' string '"' | '\'' string '\'' | [^+-*\(\)=]+?
 
-export const tokenTypeList = [
+export const TOKEN_TYPE_LIST = [
   'OR',
   'AND',
   'LPAREN',
@@ -15,17 +15,17 @@ export const tokenTypeList = [
   'STRING',
   'TERM',
 ] as const
-export type TokenType = (typeof tokenTypeList)[number]
-export const tokenTypes = Object.fromEntries(
-  tokenTypeList.map((t) => [t, t] as const),
+export type TokenType = (typeof TOKEN_TYPE_LIST)[number]
+export const TOKEN_TYPES = Object.fromEntries(
+  TOKEN_TYPE_LIST.map((t) => [t, t] as const),
 ) as { [K in TokenType]: K }
 
 export const operatorTokenChars = ['+', '*', '(', ')', '=']
 
-export const termList = ['title', 'body', 'issued'] as const
-export type Term = (typeof termList)[number]
-export const terms = Object.fromEntries(
-  termList.map((t) => [t, t] as const),
+export const TERM_LIST = ['title', 'body', 'issued'] as const
+export type Term = (typeof TERM_LIST)[number]
+export const TERMS = Object.fromEntries(
+  TERM_LIST.map((t) => [t, t] as const),
 ) as { [K in Term]: K }
 
 export type Token =

@@ -1,4 +1,4 @@
-import { Term, Token, operatorTokenChars, termList, terms } from '@/lib/token'
+import { Term, Token, operatorTokenChars, TERM_LIST, TERMS } from '@/lib/token'
 import { escapeRegExp } from '@/text-utils'
 
 /**
@@ -134,7 +134,7 @@ export class Lexer {
     if (termString === undefined) {
       throw new ParseError('キーワードが見つかりません', this.context)
     }
-    if (!termList.includes(termString as Term)) {
+    if (!TERM_LIST.includes(termString as Term)) {
       throw new ParseError('キーワードが見つかりません', this.context)
     }
     this.context.pushToken({ type: 'TERM', value: termString as Term })
