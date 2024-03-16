@@ -6,17 +6,20 @@ import { escapeRegExp } from '@/text-utils'
  */
 class ParseContext {
   private source: string
+  private sourceLength: number
   private position: number
   private tokens: Token[]
 
   constructor() {
     this.source = ''
+    this.sourceLength = 0
     this.position = 0
     this.tokens = []
   }
 
   init(source: string) {
     this.source = source
+    this.sourceLength = source.length
     this.position = 0
     this.tokens = []
   }
@@ -52,6 +55,10 @@ class ParseContext {
 
   currentPosition() {
     return this.position
+  }
+
+  isEof() {
+    return this.position >= this.sourceLength
   }
 }
 
@@ -139,6 +146,20 @@ export class Lexer {
    */
   expectValue() {
     this.consumeWhiteSpace()
+
+    if (this.tryString('"')) {
+      const quotedText = this.parseQuotedString('"')
+      this.context.pushToken({ type: 'STRING', value: quotedText })
+      this.context.consume(1)
+      return
+    }
+    if (this.tryString("'")) {
+      const quotedText = this.parseQuotedString("'")
+      this.context.pushToken({ type: 'STRING', value: quotedText })
+      this.context.consume(1)
+      return
+    }
+
     const operators = operatorTokenChars.map((s) => escapeRegExp(s)).join('')
     const valueRegExp = new RegExp(`[^${operators}\s]+`)
 
@@ -149,6 +170,30 @@ export class Lexer {
     }
     this.context.pushToken({ type: 'STRING', value: valueString as Term })
     this.context.consume(valueString.length)
+  }
+
+  private parseQuotedString(quoteSymbol: "'" | '"') {
+    this.context.consume(1)
+    let text = ''
+    const source = this.context.currentSource()
+    let cursor = 0
+    while (!this.context.isEof()) {
+      const char = source[cursor]
+      if (char === '\\') {
+        // エスケープ記号の次の文字を通常のテキストとして追加。カーソルは2つ進める。
+        text += source[cursor + 1]
+        cursor += 2
+        this.context.consume(1)
+        continue
+      }
+      if (char === quoteSymbol) {
+        break
+      }
+      text += char
+      cursor += 1
+      this.context.consume(1)
+    }
+    return text
   }
 
   /**
