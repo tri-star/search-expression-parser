@@ -39,25 +39,26 @@ class ParseContext {
 
   expectValue() {
     const operators = operatorTokenChars.map((s) => escapeRegExp(s)).join('')
-    const valueRegExp = new RegExp(`[^${operators}]+`)
+    const valueRegExp = new RegExp(`[^${operators}\s]+`)
 
     const matched = this.source.slice(this.position).match(valueRegExp)
-    const valueString = matched?.[0]
-    if (valueString === undefined) {
+    const valueString = (matched?.[0] ?? '').trim()
+    if (valueString === '') {
       throw new ParseError('値が見つかりません', this.position)
     }
     this.pushToken({ type: 'STRING', value: valueString as Term })
     this.consume(valueString.length)
   }
 
-  expectString(s: string) {
+  peekString(s: string) {
     const slicedString =
       this.source.slice(this.position, this.position + s.length) ?? ''
-    if (slicedString !== s) {
-      throw new ParseError(
-        `「${s}」が見つかりません。(見つかった値：「${slicedString}」)`,
-        this.position,
-      )
+    return slicedString === s
+  }
+
+  expectString(s: string) {
+    if (!this.peekString(s)) {
+      throw new ParseError(`「${s}」が見つかりません。`, this.position)
     }
     this.consume(s.length)
     return s
@@ -76,7 +77,7 @@ export class Lexer {
   tokenize(source: string): Token[] {
     const context = new ParseContext(source)
 
-    this.parseExpression(context)
+    this.parseOrExpression(context)
 
     return context.getTokens()
   }
@@ -89,6 +90,17 @@ export class Lexer {
     context.pushToken({ type: 'EQUAL' })
     context.consumeWhiteSpace()
     context.expectValue()
+    context.consumeWhiteSpace()
+  }
+
+  parseOrExpression(context: ParseContext) {
+    this.parseExpression(context)
+    context.consumeWhiteSpace()
+    if (context.peekString('+')) {
+      context.pushToken({ type: 'OR' })
+      context.consume(1)
+      this.parseOrExpression(context)
+    }
   }
 }
 

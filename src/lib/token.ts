@@ -7,9 +7,8 @@
 // value := '"' string '"' | '\'' string '\'' | [^+-*\(\)=]+?
 
 export const tokenTypeList = [
-  'PLUS',
-  'MINUS',
-  'MULTIPLY',
+  'OR',
+  'AND',
   'LPAREN',
   'RPAREN',
   'EQUAL',
@@ -21,7 +20,7 @@ export const tokenTypes = Object.fromEntries(
   tokenTypeList.map((t) => [t, t] as const),
 ) as { [K in TokenType]: K }
 
-export const operatorTokenChars = ['+', '-', '*', '(', ')', '=']
+export const operatorTokenChars = ['+', '*', '(', ')', '=']
 
 export const termList = ['title', 'body', 'issued'] as const
 export type Term = (typeof termList)[number]
@@ -31,7 +30,7 @@ export const terms = Object.fromEntries(
 
 export type Token =
   | {
-      type: 'PLUS' | 'MINUS' | 'MULTIPLY' | 'LPAREN' | 'RPAREN' | 'EQUAL'
+      type: 'OR' | 'AND' | 'LPAREN' | 'RPAREN' | 'EQUAL'
     }
   | {
       type: 'STRING'

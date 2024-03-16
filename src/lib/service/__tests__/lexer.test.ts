@@ -23,12 +23,16 @@ describe('lexer', () => {
       ] satisfies Token[],
     },
     {
-      title: '+',
-      input: '1+2',
+      title: 'title = 123 + body = 456',
+      input: 'title = 123 + body = 456',
       expected: [
-        { type: tokenTypes.STRING, value: '1' },
-        { type: tokenTypes.PLUS },
-        { type: tokenTypes.STRING, value: '2' },
+        { type: tokenTypes.TERM, value: 'title' },
+        { type: tokenTypes.EQUAL },
+        { type: tokenTypes.STRING, value: '123' },
+        { type: tokenTypes.OR },
+        { type: tokenTypes.TERM, value: 'body' },
+        { type: tokenTypes.EQUAL },
+        { type: tokenTypes.STRING, value: '456' },
       ] satisfies Token[],
     },
   ])('$title', ({ title, input, expected }) => {
