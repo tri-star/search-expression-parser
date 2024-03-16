@@ -97,9 +97,7 @@ export class Lexer {
     this.consumeWhiteSpace()
     this.expectString('=')
     this.context.pushToken({ type: 'EQUAL' })
-    this.consumeWhiteSpace()
     this.expectValue()
-    this.consumeWhiteSpace()
   }
 
   /**
@@ -140,6 +138,7 @@ export class Lexer {
    * title, bodyなどの"="の右辺部分のパースを行う
    */
   expectValue() {
+    this.consumeWhiteSpace()
     const operators = operatorTokenChars.map((s) => escapeRegExp(s)).join('')
     const valueRegExp = new RegExp(`[^${operators}\s]+`)
 
