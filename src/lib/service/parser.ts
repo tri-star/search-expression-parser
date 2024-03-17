@@ -7,16 +7,20 @@ class ParseContext {
   private position: number
   private length: number
 
+  private parenthesisLevel: number
+
   constructor() {
     this.tokens = []
     this.position = 0
     this.length = 0
+    this.parenthesisLevel = 0
   }
 
   init(tokens: Token[]) {
     this.tokens = tokens
     this.position = 0
     this.length = tokens.length
+    this.parenthesisLevel = 0
   }
 
   consume() {
@@ -29,6 +33,25 @@ class ParseContext {
 
   isEof() {
     return this.position >= this.length
+  }
+
+  enterParenthesis() {
+    this.parenthesisLevel += 1
+  }
+
+  leaveParenthesis() {
+    this.parenthesisLevel -= 1
+    if (this.parenthesisLevel) {
+      throw new ParseError({
+        message: '括弧の対応が取れていません',
+        expect: ')',
+        got: '',
+      })
+    }
+  }
+
+  isParenthesisClosed() {
+    return this.parenthesisLevel === 0
   }
 }
 
@@ -63,7 +86,7 @@ export class Parser {
     return this.parseOrExpression()
   }
 
-  parseOrExpression() {
+  parseOrExpression(): AstNode {
     const leftNode = this.parseAndExpression()
 
     if (!this.tryToken(TOKEN_TYPES.OR)) {
@@ -79,7 +102,7 @@ export class Parser {
     }
   }
 
-  parseAndExpression() {
+  parseAndExpression(): AstNode {
     const leftNode = this.parseExpression()
 
     if (!this.tryToken(TOKEN_TYPES.AND)) {
@@ -96,6 +119,10 @@ export class Parser {
   }
 
   parseExpression(): AstNode {
+    if (this.tryToken(TOKEN_TYPES.LPAREN)) {
+      return this.parseParenthesis()
+    }
+
     const term = this.expectTermToken()
     this.expectToken(TOKEN_TYPES.EQUAL)
     const value = this.expectStringToken()
@@ -104,6 +131,15 @@ export class Parser {
       term: term.value,
       value: value.value,
     }
+  }
+
+  parseParenthesis(): AstNode {
+    this.context.enterParenthesis()
+    this.expectToken(TOKEN_TYPES.LPAREN)
+    const node = this.parseOrExpression()
+    this.expectToken(TOKEN_TYPES.RPAREN)
+    this.context.leaveParenthesis()
+    return node
   }
 
   tryToken(tokenType: TokenType) {

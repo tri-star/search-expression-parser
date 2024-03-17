@@ -178,6 +178,80 @@ describe('parser', () => {
         },
       } satisfies AstNode,
     },
+    {
+      title: '括弧を含む場合：(title=test + body=some) * issued=">=2024-01-01"',
+      tokens: [
+        {
+          type: TOKEN_TYPES.LPAREN,
+        },
+        {
+          type: TOKEN_TYPES.LPAREN,
+        },
+        {
+          type: TOKEN_TYPES.TERM,
+          value: 'title',
+        },
+        {
+          type: TOKEN_TYPES.EQUAL,
+        },
+        {
+          type: TOKEN_TYPES.STRING,
+          value: 'test',
+        },
+        {
+          type: TOKEN_TYPES.OR,
+        },
+        {
+          type: TOKEN_TYPES.TERM,
+          value: 'body',
+        },
+        {
+          type: TOKEN_TYPES.EQUAL,
+        },
+        {
+          type: TOKEN_TYPES.STRING,
+          value: 'some',
+        },
+        {
+          type: TOKEN_TYPES.RPAREN,
+        },
+        {
+          type: TOKEN_TYPES.AND,
+        },
+        {
+          type: TOKEN_TYPES.TERM,
+          value: 'issued',
+        },
+        {
+          type: TOKEN_TYPES.EQUAL,
+        },
+        {
+          type: TOKEN_TYPES.STRING,
+          value: '>=2024-01-01',
+        },
+      ] satisfies Token[],
+      expected: {
+        type: 'AND',
+        left: {
+          type: 'OR',
+          left: {
+            type: 'EXPRESSION',
+            term: 'title',
+            value: 'test',
+          },
+          right: {
+            type: 'EXPRESSION',
+            term: 'body',
+            value: 'some',
+          },
+        },
+        right: {
+          type: 'EXPRESSION',
+          term: 'issued',
+          value: '>=2024-01-01',
+        },
+      } satisfies AstNode,
+    },
   ])(
     '$title',
     ({
