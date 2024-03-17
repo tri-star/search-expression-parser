@@ -60,7 +60,39 @@ export class Parser {
 
   parse(tokens: Token[]) {
     this.context.init(tokens)
-    return this.parseExpression()
+    return this.parseOrExpression()
+  }
+
+  parseOrExpression() {
+    const leftNode = this.parseAndExpression()
+
+    if (!this.tryToken(TOKEN_TYPES.OR)) {
+      return leftNode
+    }
+
+    this.context.consume()
+    const rightNode = this.parseAndExpression()
+    return {
+      type: 'OR',
+      left: leftNode,
+      right: rightNode,
+    }
+  }
+
+  parseAndExpression() {
+    const leftNode = this.parseExpression()
+
+    if (!this.tryToken(TOKEN_TYPES.AND)) {
+      return leftNode
+    }
+
+    this.context.consume()
+    const rightNode = this.parseExpression()
+    return {
+      type: 'AND',
+      left: leftNode,
+      right: rightNode,
+    }
   }
 
   parseExpression(): AstNode {
@@ -74,11 +106,26 @@ export class Parser {
     }
   }
 
-  expectToken<T extends TokenType>(tokenType: T) {
+  tryToken(tokenType: TokenType) {
+    if (this.context.isEof()) {
+      return false
+    }
+    const token = this.context.peek()
+    return token.type === tokenType
+  }
+
+  expectToken(tokenType: TokenType) {
+    if (this.context.isEof()) {
+      new ParseError({
+        message: '無効なトークンです',
+        expect: tokenType,
+        got: 'EOF',
+      })
+    }
     const token = this.context.peek()
     if (token.type === tokenType) {
       this.context.consume()
-      return token as { type: T }
+      return token
     }
     throw new ParseError({
       message: '無効なトークンです',
