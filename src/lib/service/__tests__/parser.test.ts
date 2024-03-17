@@ -185,9 +185,6 @@ describe('parser', () => {
           type: TOKEN_TYPES.LPAREN,
         },
         {
-          type: TOKEN_TYPES.LPAREN,
-        },
-        {
           type: TOKEN_TYPES.TERM,
           value: 'title',
         },
@@ -249,6 +246,71 @@ describe('parser', () => {
           type: 'EXPRESSION',
           term: 'issued',
           value: '>=2024-01-01',
+        },
+      } satisfies AstNode,
+    },
+    {
+      title: 'OR演算を複数回：title=test + body=some + body=example',
+      tokens: [
+        {
+          type: TOKEN_TYPES.TERM,
+          value: 'title',
+        },
+        {
+          type: TOKEN_TYPES.EQUAL,
+        },
+        {
+          type: TOKEN_TYPES.STRING,
+          value: 'test',
+        },
+        {
+          type: TOKEN_TYPES.OR,
+        },
+        {
+          type: TOKEN_TYPES.TERM,
+          value: 'body',
+        },
+        {
+          type: TOKEN_TYPES.EQUAL,
+        },
+        {
+          type: TOKEN_TYPES.STRING,
+          value: 'some',
+        },
+        {
+          type: TOKEN_TYPES.OR,
+        },
+        {
+          type: TOKEN_TYPES.TERM,
+          value: 'body',
+        },
+        {
+          type: TOKEN_TYPES.EQUAL,
+        },
+        {
+          type: TOKEN_TYPES.STRING,
+          value: 'example',
+        },
+      ] satisfies Token[],
+      expected: {
+        type: 'OR',
+        left: {
+          type: 'OR',
+          left: {
+            type: 'EXPRESSION',
+            term: 'title',
+            value: 'test',
+          },
+          right: {
+            type: 'EXPRESSION',
+            term: 'body',
+            value: 'some',
+          },
+        },
+        right: {
+          type: 'EXPRESSION',
+          term: 'body',
+          value: 'example',
         },
       } satisfies AstNode,
     },

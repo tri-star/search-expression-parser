@@ -83,39 +83,63 @@ export class Parser {
 
   parse(tokens: Token[]) {
     this.context.init(tokens)
-    return this.parseOrExpression()
+    const tree = this.parseOrExpression()
+
+    if (this.tryToken(TOKEN_TYPES.RPAREN)) {
+      throw new ParseError({
+        message: '括弧の対応が取れていません',
+        expect: 'TERM',
+        got: 'RPAREN',
+      })
+    }
+
+    if (!this.context.isParenthesisClosed()) {
+      throw new ParseError({
+        message: '括弧の対応が取れていません',
+        expect: ')',
+        got: '',
+      })
+    }
+
+    return tree
   }
 
   parseOrExpression(): AstNode {
-    const leftNode = this.parseAndExpression()
+    let current = this.parseAndExpression()
 
-    if (!this.tryToken(TOKEN_TYPES.OR)) {
-      return leftNode
-    }
+    while (!this.context.isEof()) {
+      if (!this.tryToken(TOKEN_TYPES.OR)) {
+        return current
+      }
 
-    this.context.consume()
-    const rightNode = this.parseAndExpression()
-    return {
-      type: 'OR',
-      left: leftNode,
-      right: rightNode,
+      this.context.consume()
+      const rightNode = this.parseAndExpression()
+      current = {
+        type: 'OR',
+        left: current,
+        right: rightNode,
+      }
     }
+    return current
   }
 
   parseAndExpression(): AstNode {
-    const leftNode = this.parseExpression()
+    let current = this.parseExpression()
 
-    if (!this.tryToken(TOKEN_TYPES.AND)) {
-      return leftNode
-    }
+    while (!this.context.isEof()) {
+      if (!this.tryToken(TOKEN_TYPES.AND)) {
+        return current
+      }
 
-    this.context.consume()
-    const rightNode = this.parseExpression()
-    return {
-      type: 'AND',
-      left: leftNode,
-      right: rightNode,
+      this.context.consume()
+      const rightNode = this.parseExpression()
+      current = {
+        type: 'AND',
+        left: current,
+        right: rightNode,
+      }
     }
+    return current
   }
 
   parseExpression(): AstNode {
