@@ -41,7 +41,7 @@ class ParseContext {
 
   leaveParenthesis() {
     this.parenthesisLevel -= 1
-    if (this.parenthesisLevel) {
+    if (this.parenthesisLevel < 0) {
       throw new ParseError({
         message: '括弧の対応が取れていません',
         expect: ')',
@@ -87,7 +87,7 @@ export class Parser {
 
     if (this.tryToken(TOKEN_TYPES.RPAREN)) {
       throw new ParseError({
-        message: '括弧の対応が取れていません',
+        message: '括弧の対応が取れていません1',
         expect: 'TERM',
         got: 'RPAREN',
       })
@@ -95,7 +95,7 @@ export class Parser {
 
     if (!this.context.isParenthesisClosed()) {
       throw new ParseError({
-        message: '括弧の対応が取れていません',
+        message: '括弧の対応が取れていません2',
         expect: ')',
         got: '',
       })

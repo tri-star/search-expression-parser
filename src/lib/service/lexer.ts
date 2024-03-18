@@ -100,11 +100,19 @@ export class Lexer {
    */
   parseExpression() {
     this.consumeWhiteSpace()
+    while (this.tryString('(')) {
+      this.context.consume(1)
+      this.context.pushToken({ type: 'LPAREN' })
+    }
     this.expectTerm()
     this.consumeWhiteSpace()
     this.expectString('=')
     this.context.pushToken({ type: 'EQUAL' })
     this.expectValue()
+    while (this.tryString(')')) {
+      this.context.consume(1)
+      this.context.pushToken({ type: 'RPAREN' })
+    }
   }
 
   /**
