@@ -161,7 +161,7 @@ export class Lexer {
     }
 
     const operators = operatorTokenChars.map((s) => escapeRegExp(s)).join('')
-    const valueRegExp = new RegExp(`[^${operators}\s]+`)
+    const valueRegExp = new RegExp(`[^${operators} ]+`)
 
     const matched = this.context.currentSource().match(valueRegExp)
     const valueString = (matched?.[0] ?? '').trim()
