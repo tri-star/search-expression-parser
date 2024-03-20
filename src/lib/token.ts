@@ -20,7 +20,7 @@ export const TOKEN_TYPES = Object.fromEntries(
   TOKEN_TYPE_LIST.map((t) => [t, t] as const),
 ) as { [K in TokenType]: K }
 
-export const operatorTokenChars = ['+', '*', '(', ')', '=']
+export const operatorTokenChars = ['+', '*', '(', ')', '=', '"', "'"]
 
 export const TERM_LIST = ['title', 'body', 'issued'] as const
 export type Term = (typeof TERM_LIST)[number]

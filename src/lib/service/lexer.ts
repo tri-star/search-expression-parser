@@ -90,7 +90,9 @@ export class Lexer {
   tokenize(source: string): Token[] {
     this.context.init(source)
 
+    while (!this.context.isEof()) {
     this.parseJoinExpression()
+    }
 
     return this.context.getTokens()
   }
@@ -168,11 +170,28 @@ export class Lexer {
       return
     }
 
-    const operators = operatorTokenChars.map((s) => escapeRegExp(s)).join('')
-    const valueRegExp = new RegExp(`[^${operators} ]+`)
+    // クォートやAND,OR記号が見つかるまでの文字を取得する。
+    // '\'を見つけた場合は次の文字を読み飛ばす。
+    const separatorChars = [...operatorTokenChars, ' ']
+    let valueString = ''
+    const source = this.context.currentSource()
+    let cursor = 0
+    while (cursor < source.length) {
+      const char = source[cursor]
+      if (char === '\\') {
+        // エスケープ記号の次の文字を通常のテキストとして追加。カーソルは2つ進める。
+        valueString += source[cursor + 1]
+        cursor += 2
+        this.context.consume(2)
+        continue
+      }
+      if (separatorChars.includes(char)) {
+        break
+      }
+      valueString += char
+      cursor += 1
+    }
 
-    const matched = this.context.currentSource().match(valueRegExp)
-    const valueString = (matched?.[0] ?? '').trim()
     if (valueString === '') {
       throw new ParseError('値が見つかりません', this.context)
     }
@@ -192,7 +211,7 @@ export class Lexer {
         // エスケープ記号の次の文字を通常のテキストとして追加。カーソルは2つ進める。
         text += source[cursor + 1]
         cursor += 2
-        this.context.consume(1)
+        this.context.consume(2)
         continue
       }
       if (char === quoteSymbol) {

@@ -211,7 +211,7 @@ describe('lex-and-parse', () => {
       {
         title: '値の途中からクォートが始まる',
         input: 'title=aaa"aa"+body=aaa',
-        expected: /クォートが閉じられていません/,
+        expected: /キーワードが見つかりません/,
       },
       {
         title: '括弧が閉じていない(1)',
