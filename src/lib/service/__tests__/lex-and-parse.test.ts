@@ -41,6 +41,39 @@ describe('lex-and-parse', () => {
         } satisfies AstNode,
       },
       {
+        title: 'ANDとORの結合順: ANDが優先される',
+        input: 'title=test + body=some * issued=">=2024-01-01" + title=abc',
+        expected: {
+          type: 'OR',
+          left: {
+            type: 'OR',
+            left: {
+              type: 'EXPRESSION',
+              term: 'title',
+              value: 'test',
+            },
+            right: {
+              type: 'AND',
+              left: {
+                type: 'EXPRESSION',
+                term: 'body',
+                value: 'some',
+              },
+              right: {
+                type: 'EXPRESSION',
+                term: 'issued',
+                value: '>=2024-01-01',
+              },
+            },
+          },
+          right: {
+            type: 'EXPRESSION',
+            term: 'title',
+            value: 'abc',
+          },
+        } satisfies AstNode,
+      },
+      {
         title: 'クォートとクォートのエスケープ',
         input: 'title="test + test2" + body = "test \\" test2"',
         expected: {
