@@ -32,7 +32,7 @@ class ParseContext {
   }
 
   isEof() {
-    return this.position >= this.length
+    return this.position >= this.length - 1
   }
 
   enterParenthesis() {
@@ -176,7 +176,7 @@ export class Parser {
 
   expectToken(tokenType: TokenType) {
     if (this.context.isEof()) {
-      new ParseError({
+      throw new ParseError({
         message: '無効なトークンです',
         expect: tokenType,
         got: 'EOF',

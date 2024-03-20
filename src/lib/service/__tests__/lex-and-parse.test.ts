@@ -216,47 +216,47 @@ describe('lex-and-parse', () => {
       {
         title: '括弧が閉じていない(1)',
         input: '(title=aaaaa+body=aaa',
-        expected: /括弧の対応が取れていません1/,
+        expected: /括弧の対応が取れていません/,
       },
       {
         title: '括弧が閉じていない(2)',
         input: 'title=aaaaa+(body=aaa',
-        expected: /括弧の対応が取れていません1/,
+        expected: /括弧の対応が取れていません/,
       },
       {
         title: '括弧の位置が不正(1)',
         input: 'title=(aaaaa+body=aaa',
-        expected: /括弧の対応が取れていません1/,
+        expected: /キーワードが見つかりません/,
       },
       {
         title: '括弧の位置が不正(2)',
         input: 'title=aaaaa)+body=aaa',
-        expected: /括弧の対応が取れていません1/,
+        expected: /括弧の対応が取れていません/,
       },
       {
         title: '括弧の位置が不正(3)',
         input: 'title=aaaaa+body=aaa()',
-        expected: /括弧の対応が取れていません1/,
+        expected: /キーワードが見つかりません/,
       },
       {
         title: '括弧の位置が不正(4)',
         input: 'title=aaaaa(+)body=aaa',
-        expected: /括弧の対応が取れていません1/,
+        expected: /キーワードが見つかりません/,
       },
       {
         title: '括弧の位置が不正(5)',
         input: 'title=aaa(a)a+body=aaa',
-        expected: /括弧の対応が取れていません1/,
+        expected: /キーワードが見つかりません/,
       },
       {
         title: '括弧の数が不正(1)',
         input: '((title=aaaaa)+body=aaa',
-        expected: /括弧の対応が取れていません1/,
+        expected: /括弧の対応が取れていません/,
       },
       {
         title: '括弧の数が不正(2)',
         input: '(title=aaaaa))+body=aaa',
-        expected: /括弧の対応が取れていません1/,
+        expected: /括弧の対応が取れていません/,
       },
     ])(
       '$title',
@@ -277,6 +277,9 @@ describe('lex-and-parse', () => {
           parser.parse(tokens)
           throw new Error('例外が発生しませんでした')
         } catch (e) {
+          if ((e as Error).stack) {
+            console.log((e as Error).stack)
+          }
           expect((e as Error).message).toMatch(expected)
         }
       },

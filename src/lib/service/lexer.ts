@@ -1,4 +1,10 @@
-import { Term, Token, operatorTokenChars, TERM_LIST, TERMS } from '@/lib/token'
+import {
+  Term,
+  Token,
+  operatorTokenChars,
+  TERM_LIST,
+  TOKEN_TYPES,
+} from '@/lib/token'
 import { escapeRegExp } from '@/text-utils'
 
 /**
@@ -91,7 +97,11 @@ export class Lexer {
     this.context.init(source)
 
     while (!this.context.isEof()) {
-    this.parseJoinExpression()
+      this.parseJoinExpression()
+    }
+
+    if (!this.validateParenthesisCount()) {
+      throw new ParseError('括弧の対応が取れていません', this.context)
     }
 
     return this.context.getTokens()
@@ -192,9 +202,6 @@ export class Lexer {
       cursor += 1
     }
 
-    if (valueString === '') {
-      throw new ParseError('値が見つかりません', this.context)
-    }
     this.context.pushToken({ type: 'STRING', value: valueString as Term })
     this.context.consume(valueString.length)
   }
@@ -257,5 +264,18 @@ export class Lexer {
       return
     }
     this.context.consume(matched[0].length)
+  }
+
+  private validateParenthesisCount() {
+    let level = 0
+    this.context.getTokens().forEach((token) => {
+      if (token.type === TOKEN_TYPES.LPAREN) {
+        level += 1
+      }
+      if (token.type === TOKEN_TYPES.RPAREN) {
+        level -= 1
+      }
+    })
+    return level === 0
   }
 }
