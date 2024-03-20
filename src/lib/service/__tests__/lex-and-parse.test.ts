@@ -249,6 +249,11 @@ describe('lex-and-parse', () => {
         expected: /キーワードが見つかりません/,
       },
       {
+        title: '括弧の位置が不正(6)',
+        input: '(title=)aaaaa+body=aaa',
+        expected: /キーワードが見つかりません/,
+      },
+      {
         title: '括弧の数が不正(1)',
         input: '((title=aaaaa)+body=aaa',
         expected: /括弧の対応が取れていません/,
