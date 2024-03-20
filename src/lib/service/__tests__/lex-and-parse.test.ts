@@ -194,6 +194,11 @@ describe('lex-and-parse', () => {
         expected: /キーワードが見つかりません/,
       },
       {
+        title: '無効なキーワード："body"',
+        input: 'subject=aaa+"body"=test',
+        expected: /キーワードが見つかりません/,
+      },
+      {
         title: 'キーワード直後が無効',
         input: 'title+aaa',
         expected: /「=」が見つかりません。/,
