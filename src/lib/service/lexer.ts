@@ -185,6 +185,7 @@ export class Lexer {
     let text = ''
     const source = this.context.currentSource()
     let cursor = 0
+    let closed = false
     while (!this.context.isEof()) {
       const char = source[cursor]
       if (char === '\\') {
@@ -195,11 +196,15 @@ export class Lexer {
         continue
       }
       if (char === quoteSymbol) {
+        closed = true
         break
       }
       text += char
       cursor += 1
       this.context.consume(1)
+    }
+    if (!closed) {
+      throw new ParseError('クォートが閉じられていません', this.context)
     }
     return text
   }
